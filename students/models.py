@@ -78,6 +78,21 @@ class RegressionModel(object):
     def __init__(self) -> None:
         # Initialize your model parameters here
         "*** TODO: COMPLETE HERE FOR QUESTION 2 ***"
+        
+        # Pour la reproductibilité
+        np.random.seed(42)
+
+        # Nombre de neurone dans les couches cachées
+        self.hidden_layer = 100
+
+        # Poids et biais pour la couche cachée
+        self.w_hidden = nn.Parameter(1, self.hidden_layer)
+        self.b_hidden = nn.Parameter(1, self.hidden_layer)
+
+        # Poids et biais pour la couche de sortie
+        self.w_output = nn.Parameter(self.hidden_layer, 1)
+        self.b_output = nn.Parameter(1, 1)
+
 
     def run(self, x: nn.Constant) -> nn.Node:
         """
@@ -89,6 +104,12 @@ class RegressionModel(object):
             A node with shape (batch_size x 1) containing predicted y-values
         """
         "*** TODO: COMPLETE HERE FOR QUESTION 2 ***"
+        
+        # Calcul de la couche cachée
+        hidden = nn.ReLU(nn.AddBias(nn.Linear(x, self.w_hidden), self.b_hidden))
+        # Calcul de la sortie
+        output = nn.AddBias(nn.Linear(hidden, self.w_output), self.b_output)
+        return output
 
     def get_loss(self, x: nn.Constant, y: nn.Constant) -> nn.Node:
         """
@@ -101,12 +122,52 @@ class RegressionModel(object):
         Returns: a loss node
         """
         "*** TODO: COMPLETE HERE FOR QUESTION 2 ***"
+        predicted_y = self.run(x)  # Utilise les prédictions
+        return nn.SquareLoss(predicted_y, y)
 
     def train(self, dataset: RegressionDataset) -> None:
         """
         Trains the model.
         """
         "*** TODO: COMPLETE HERE FOR QUESTION 2 ***"
+        batch_size = 10
+        learning_rate = 0.01
+        target_loss = 0.0001  # Seuil de perte pour arrêter l'entraînement
+        max_epochs = 10000    # Sécurité pour éviter un entraînement infini
+
+        for epoch in range(max_epochs):  # Limiter le nombre d'epochs
+            total_loss = 0
+            num_batches = 0
+
+            for x_input, y_golden in dataset.iterate_once(batch_size):
+                
+
+                # Calcul de la fonction de perte
+                loss = self.get_loss(x_input, y_golden)
+                total_loss += nn.as_scalar(loss)  # Accumuler la perte pour calculer la moyenne
+                num_batches += 1
+
+                # Mise à jour des poids
+                grad_w_hidden, grad_b_hidden, grad_w_output, grad_b_output = nn.gradients(
+                    loss, [self.w_hidden, self.b_hidden, self.w_output, self.b_output]
+                )
+
+                self.w_hidden.update(grad_w_hidden, -learning_rate)
+                self.b_hidden.update(grad_b_hidden, -learning_rate)
+                self.w_output.update(grad_w_output, -learning_rate)
+                self.b_output.update(grad_b_output, -learning_rate)
+
+            # Calcul de la perte moyenne après une epoch
+            avg_loss = total_loss / num_batches
+            # print(f"Epoch {epoch + 1}: Average Loss = {avg_loss}")
+
+            # Vérification de la condition d'arrêt
+            if avg_loss <= target_loss:
+                print("Entraînement terminé : la perte moyenne a atteint le seuil.")
+                break
+        else:
+            print("Entraînement terminé : limite d'epochs atteinte.")                
+            
 
 
 class DigitClassificationModel(object):
