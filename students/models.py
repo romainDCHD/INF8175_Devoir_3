@@ -1,6 +1,6 @@
 import nn
 from backend import PerceptronDataset, RegressionDataset, DigitClassificationDataset
-
+import numpy as np
 
 class PerceptronModel(object):
     def __init__(self, dimensions: int) -> None:
@@ -29,6 +29,8 @@ class PerceptronModel(object):
         Returns: a node containing a single number (the score)
         """
         "*** TODO: COMPLETE HERE FOR QUESTION 1 ***"
+        
+        return nn.DotProduct(x, self.w )
 
     def get_prediction(self, x: nn.Constant) -> int:
         """
@@ -37,12 +39,33 @@ class PerceptronModel(object):
         Returns: 1 or -1
         """
         "*** TODO: COMPLETE HERE FOR QUESTION 1 ***"
+        x_scalar = nn.as_scalar(self.run(x))
+        if (x_scalar >= 0):
+            return 1
+        else:
+            return -1
 
     def train(self, dataset: PerceptronDataset) -> None:
         """
         Train the perceptron until convergence.
         """
         "*** TODO: COMPLETE HERE FOR QUESTION 1 ***"
+    
+        all_correct = False  # Initialisation à False pour commencer l'entraînement
+
+        while not all_correct:  # Boucle jusqu'à convergence
+            all_correct = True  # On suppose au départ que tout est correct
+
+            for x, y in dataset.iterate_once(1):  
+                y_true = int(nn.as_scalar(y))  
+                y_pred = self.get_prediction(x) 
+
+                # Si la prédiction est incorrecte, ajuster les poids
+                if y_true != y_pred:
+                    
+                    # Mise à jour des poids
+                    self.w.update(x, nn.as_scalar(y))  
+                    all_correct = False  # Au moins une erreur corrigée
 
 
 class RegressionModel(object):
