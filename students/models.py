@@ -201,12 +201,19 @@ class DigitClassificationModel(object):
         self.hidden_layer = 128  # Taille de la couche cachée
         self.output_size = 10  # 10 classes pour les chiffres 0 à 9
 
-        # Poids et biais pour la couche cachée
+        # Poids et biais pour la couche cachée 1
         self.w_hidden = nn.Parameter(self.input_size, self.hidden_layer)
         self.b_hidden = nn.Parameter(1, self.hidden_layer)
 
+        self.hidden_layer2 = 64  # Taille de la deuxième couche cachée
+
+        # Poids et biais pour la deuxième couche cachée
+        self.w_hidden2 = nn.Parameter(self.hidden_layer, self.hidden_layer2)
+        self.b_hidden2 = nn.Parameter(1, self.hidden_layer2)
+
+
         # Poids et biais pour la couche de sortie
-        self.w_output = nn.Parameter(self.hidden_layer, self.output_size)
+        self.w_output = nn.Parameter(self.hidden_layer2, self.output_size)
         self.b_output = nn.Parameter(1, self.output_size)
 
     def run(self, x: nn.Constant) -> nn.Node:
@@ -226,9 +233,13 @@ class DigitClassificationModel(object):
         "*** TODO: COMPLETE HERE FOR QUESTION 3 ***"
         # Calcul de z de la couche cachée
         # Ici, le choix a été fait de remplacer la sigmoïde par la fonction ReLU
-        hidden = nn.ReLU(nn.AddBias(nn.Linear(x, self.w_hidden), self.b_hidden))
+        #hidden = nn.ReLU(nn.AddBias(nn.Linear(x, self.w_hidden), self.b_hidden))
+        hidden1 = nn.ReLU(nn.AddBias(nn.Linear(x, self.w_hidden), self.b_hidden))
+        hidden2 = nn.ReLU(nn.AddBias(nn.Linear(hidden1, self.w_hidden2), self.b_hidden2))
+        output = nn.AddBias(nn.Linear(hidden2, self.w_output), self.b_output)
+
         # Calcul de z de la couche de sortie )
-        output = nn.AddBias(nn.Linear(hidden, self.w_output), self.b_output)
+        #output = nn.AddBias(nn.Linear(hidden, self.w_output), self.b_output)
         return output
 
     def get_loss(self, x: nn.Constant, y: nn.Constant) -> nn.Node:
@@ -256,8 +267,8 @@ class DigitClassificationModel(object):
         """
         "*** TODO: COMPLETE HERE FOR QUESTION 3 ***"
         # Hyperparamètres
-        batch_size = 600
-        learning_rate = 0.01
+        batch_size = 100
+        learning_rate = 0.3
         
         max_epochs = 50  # Limite d'epochs pour éviter un entrainement infini (limite arbitraire)
         target_accuracy = 0.97  # Précision cible sur la validation
@@ -283,7 +294,7 @@ class DigitClassificationModel(object):
             print(f"Epoch {epoch + 1}: Validation Accuracy = {val_accuracy:.4f}")
 
             # Critère d'arrêt basé sur la précision
-            if val_accuracy >= target_accuracy:
+            if val_accuracy >= target_accuracy + 0.002:
                 print("Entraînement terminé : précision cible atteinte.")
                 break
         else:
