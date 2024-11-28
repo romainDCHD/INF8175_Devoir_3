@@ -1,3 +1,8 @@
+##############################
+# DUCHADEAU Romain (2311547)
+# LOPEZ Ines (2404168)
+##############################
+
 import nn
 from backend import PerceptronDataset, RegressionDataset, DigitClassificationDataset
 import numpy as np
@@ -39,7 +44,10 @@ class PerceptronModel(object):
         Returns: 1 or -1
         """
         "*** TODO: COMPLETE HERE FOR QUESTION 1 ***"
+        # Convertir en une valeur scalaire
         x_scalar = nn.as_scalar(self.run(x))
+        
+        # Effectuer la comparaison
         if (x_scalar >= 0):
             return 1
         else:
@@ -233,13 +241,11 @@ class DigitClassificationModel(object):
         "*** TODO: COMPLETE HERE FOR QUESTION 3 ***"
         # Calcul de z de la couche cachée
         # Ici, le choix a été fait de remplacer la sigmoïde par la fonction ReLU
-        #hidden = nn.ReLU(nn.AddBias(nn.Linear(x, self.w_hidden), self.b_hidden))
         hidden1 = nn.ReLU(nn.AddBias(nn.Linear(x, self.w_hidden), self.b_hidden))
         hidden2 = nn.ReLU(nn.AddBias(nn.Linear(hidden1, self.w_hidden2), self.b_hidden2))
+        
+        # Calcul de z de la couche de sortie 
         output = nn.AddBias(nn.Linear(hidden2, self.w_output), self.b_output)
-
-        # Calcul de z de la couche de sortie )
-        #output = nn.AddBias(nn.Linear(hidden, self.w_output), self.b_output)
         return output
 
     def get_loss(self, x: nn.Constant, y: nn.Constant) -> nn.Node:
